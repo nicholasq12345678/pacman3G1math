@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Math Pac-Man Game - Completing the Square</title>
+    <title>Math Pac-Man Game - Quadratic Equations</title>
     <style>
         body {
             background-color: #111;
@@ -99,7 +99,7 @@
             border: 3px solid #ffcc00;
             padding: 20px;
             border-radius: 10px;
-            width: 300px;
+            width: 320px;
             box-shadow: 0 0 20px rgba(255, 204, 0, 0.5);
             text-align: center;
             z-index: 10;
@@ -118,10 +118,8 @@
 
         .inputs-group {
             display: flex;
-            justify-content: center;
-            gap: 15px;
+            justify-content: space-around;
             margin: 15px 0;
-            align-items: center;
         }
 
         .inputs-group label {
@@ -129,7 +127,7 @@
         }
 
         .inputs-group input {
-            width: 55px;
+            width: 45px;
             padding: 5px;
             text-align: center;
             font-size: 16px;
@@ -192,6 +190,7 @@
             <div class="inputs-group">
                 <div><label for="ans-a">a = </label><input type="number" id="ans-a"></div>
                 <div><label for="ans-b">b = </label><input type="number" id="ans-b"></div>
+                <div><label for="ans-c">c = </label><input type="number" id="ans-c"></div>
             </div>
             <button onclick="submitAnswer()">Submit Answer</button>
             <div id="feedback"></div>
@@ -199,38 +198,38 @@
     </div>
 
     <script>
-        // Question Bank for Completing the Square: (x - a)² + b[cite: 5]
+        // Question Bank for Quadratic Equations: ax² + bx + c = 0[cite: 1, 2]
         const questionBank = [
-            { eq: "x² + 10x + 10", a: -5, b: -15 }, //[cite: 5]
-            { eq: "x² - 8", a: 0, b: -8 },          //[cite: 5]
-            { eq: "x² + 2x - 10", a: -1, b: -11 },  //[cite: 5]
-            { eq: "x² + 10x + 31", a: -5, b: 6 },   //[cite: 5]
-            { eq: "x² + 12x + 39", a: -6, b: 3 },   //[cite: 5]
-            { eq: "x² - 12x + 40", a: 6, b: 4 },    //[cite: 5]
-            { eq: "x² - 6x - 14", a: 3, b: -23 },   //[cite: 5]
-            { eq: "x² - 4x + 12", a: 2, b: 8 },     //[cite: 5]
-            { eq: "x² - 2x - 19", a: 1, b: -20 },   //[cite: 5]
-            { eq: "x² - 14", a: 0, b: -14 },        //[cite: 5]
-            { eq: "x² + 16x + 69", a: -8, b: 5 },   //[cite: 5]
-            { eq: "x² - 16x + 56", a: 8, b: -8 },   //[cite: 5]
-            { eq: "x² - 6x - 6", a: 3, b: -15 },    //[cite: 5]
-            { eq: "x² - 12x + 38", a: 6, b: 2 },    //[cite: 5]
-            { eq: "x² + 4x - 14", a: -2, b: -18 },  //[cite: 5]
-            { eq: "x² + 10x + 15", a: -5, b: -10 }, //[cite: 5]
-            { eq: "x² - 8x + 3", a: 4, b: -13 },    //[cite: 5]
-            { eq: "x² + 6x + 29", a: -3, b: 20 },   //[cite: 5]
-            { eq: "x² - 10x + 19", a: 5, b: -6 },   //[cite: 5]
-            { eq: "x² + 8x - 2", a: -4, b: -18 },   //[cite: 5]
-            { eq: "x² + 4x - 2", a: -2, b: -6 },    //[cite: 5]
-            { eq: "x² + 10x + 22", a: -5, b: -3 },  //[cite: 5]
-            { eq: "x² - 12x + 63", a: 6, b: 27 },   //[cite: 5]
-            { eq: "x² + 2", a: 0, b: 2 },           //[cite: 5]
-            { eq: "x² + 6x - 6", a: -3, b: -15 },   //[cite: 5]
-            { eq: "x² - 6x + 29", a: 3, b: 20 },    //[cite: 5]
-            { eq: "x² + 10x + 20", a: -5, b: -5 },  //[cite: 5]
-            { eq: "x² - 2x + 5", a: 1, b: 4 },      //[cite: 5]
-            { eq: "x² + 12x + 56", a: -6, b: 20 },  //[cite: 5]
-            { eq: "x² - 14x + 49", a: 7, b: 0 }     //[cite: 5]
+            { eq: "-2x² - 15x - 3 = 0", a: -2, b: -15, c: -3 }, //[cite: 1]
+            { eq: "3x² - 8x - 12 = 0", a: 3, b: -8, c: -12 },   //[cite: 1]
+            { eq: "-2x² + 6x + 14 = 0", a: -2, b: 6, c: 14 },   //[cite: 1]
+            { eq: "-3x² + 3x + 7 = 0", a: -3, b: 3, c: 7 },     //[cite: 1]
+            { eq: "-4x² - 15x - 15 = 0", a: -4, b: -15, c: -15 }, //[cite: 1]
+            { eq: "2x² - 8x + 12 = 0", a: 2, b: -8, c: 12 },    //[cite: 1]
+            { eq: "-5x² + 2x - 8 = 0", a: -5, b: 2, c: -8 },    //[cite: 1]
+            { eq: "9x² - 8x + 8 = 0", a: 9, b: -8, c: 8 },      //[cite: 1]
+            { eq: "4x² + 10x - 20 = 0", a: 4, b: 10, c: -20 },  //[cite: 1]
+            { eq: "x² + 7x + 7 = 0", a: 1, b: 7, c: 7 },        //[cite: 1]
+            { eq: "6x² - 7x - 11 = 0", a: 6, b: -7, c: -11 },   //[cite: 1]
+            { eq: "2x² + 15x + 1 = 0", a: 2, b: 15, c: 1 },     //[cite: 1]
+            { eq: "-2x² - 13x + 4 = 0", a: -2, b: -13, c: 4 },  //[cite: 1]
+            { eq: "-2x² - 4x + 2 = 0", a: -2, b: -4, c: 2 },    //[cite: 1]
+            { eq: "4x² + 10x - 18 = 0", a: 4, b: 10, c: -18 },  //[cite: 1]
+            { eq: "10x² + 2x - 13 = 0", a: 10, b: 2, c: -13 },  //[cite: 1]
+            { eq: "8x² - 13x + 15 = 0", a: 8, b: -13, c: 15 },  //[cite: 1]
+            { eq: "5x² + 11x + 20 = 0", a: 5, b: 11, c: 20 },   //[cite: 1]
+            { eq: "7x² + 3x - 8 = 0", a: 7, b: 3, c: -8 },      //[cite: 1]
+            { eq: "-3x² - 14x - 6 = 0", a: -3, b: -14, c: -6 }, //[cite: 1]
+            { eq: "5x² - 13x - 6 = 0", a: 5, b: -13, c: -6 },   //[cite: 1]
+            { eq: "-2x² - 3x - 3 = 0", a: -2, b: -3, c: -3 },   //[cite: 1]
+            { eq: "10x² + 5x + 3 = 0", a: 10, b: 5, c: 3 },     //[cite: 1]
+            { eq: "x² - 4x + 2 = 0", a: 1, b: -4, c: 2 },       //[cite: 1]
+            { eq: "2x² + 6x - 3 = 0", a: 2, b: 6, c: -3 },      //[cite: 2]
+            { eq: "-3x² + 4x + 20 = 0", a: -3, b: 4, c: 20 },   //[cite: 2]
+            { eq: "x² + 2x - 5 = 0", a: 1, b: 2, c: -5 },       //[cite: 2]
+            { eq: "x² - x + 4 = 0", a: 1, b: -1, c: 4 },        //[cite: 2]
+            { eq: "4x² + 14x + 20 = 0", a: 4, b: 14, c: 20 },   //[cite: 2]
+            { eq: "3x² + 6x = 0", a: 3, b: 6, c: 0 }            //[cite: 2]
         ];
 
         const canvas = document.getElementById("canvas");
@@ -354,9 +353,10 @@
                 title.style.color = "#ffcc00";
             }
 
-            qText.innerText = `Rearrange ${currentQuestion.eq}\nin the form (x - a)² + b:`;
+            qText.innerText = `Find a, b, and c for:\n${currentQuestion.eq}`;
             document.getElementById('ans-a').value = '';
             document.getElementById('ans-b').value = '';
+            document.getElementById('ans-c').value = '';
             document.getElementById('feedback').innerText = '';
             modal.style.display = 'block';
         }
@@ -364,8 +364,9 @@
         function submitAnswer() {
             const userA = parseInt(document.getElementById('ans-a').value);
             const userB = parseInt(document.getElementById('ans-b').value);
+            const userC = parseInt(document.getElementById('ans-c').value);
 
-            if (userA === currentQuestion.a && userB === currentQuestion.b) {
+            if (userA === currentQuestion.a && userB === currentQuestion.b && userC === currentQuestion.c) {
                 document.getElementById('modal').style.display = 'none';
                 isPaused = false;
 
@@ -510,7 +511,7 @@
                     ghost.y += ghost.dirY;
                 }
 
-                // Check collisions
+                // Check collisions (same tile or swapped tiles)
                 let sameTile = (ghost.x === pacman.x && ghost.y === pacman.y);
                 let swappedTiles = (ghost.x === oldPacmanX && ghost.y === oldPacmanY && pacman.x === oldGhostX && pacman.y === oldGhostY);
 
