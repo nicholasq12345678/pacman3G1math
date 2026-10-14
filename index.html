@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Math Pac-Man Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Math Pac-Man Game - Completing the Square</title>
     <style>
         body {
             background-color: #111;
@@ -14,17 +15,24 @@
             justify-content: center;
             min-height: 100vh;
             margin: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
         }
 
         #game-container {
             position: relative;
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         #ui {
             display: flex;
             justify-content: space-between;
-            width: 440px;
+            width: 100%;
+            max-width: 440px;
             margin-bottom: 10px;
             font-size: 18px;
             font-weight: bold;
@@ -34,6 +42,50 @@
             border: 4px solid #1919a6;
             box-shadow: 0 0 15px #1919a6;
             background-color: #000;
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* On-Screen D-Pad Controls for iPad/Mobile */
+        #controls {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .dpad-row {
+            display: flex;
+            gap: 5px;
+        }
+
+        .dpad-btn {
+            width: 60px;
+            height: 60px;
+            background-color: #222;
+            border: 2px solid #1919a6;
+            color: #ffcc00;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px #000;
+            touch-action: manipulation;
+        }
+
+        .dpad-btn:active {
+            background-color: #333;
+            transform: translateY(2px);
+            box-shadow: 0 2px #000;
+        }
+
+        .dpad-spacer {
+            width: 60px;
+            height: 60px;
         }
 
         /* Question Modal Styling */
@@ -47,7 +99,7 @@
             border: 3px solid #ffcc00;
             padding: 20px;
             border-radius: 10px;
-            width: 320px;
+            width: 300px;
             box-shadow: 0 0 20px rgba(255, 204, 0, 0.5);
             text-align: center;
             z-index: 10;
@@ -61,12 +113,15 @@
         #modal p {
             font-size: 15px;
             line-height: 1.4;
+            white-space: pre-line;
         }
 
         .inputs-group {
             display: flex;
-            justify-content: space-around;
+            justify-content: center;
+            gap: 15px;
             margin: 15px 0;
+            align-items: center;
         }
 
         .inputs-group label {
@@ -74,7 +129,7 @@
         }
 
         .inputs-group input {
-            width: 45px;
+            width: 55px;
             padding: 5px;
             text-align: center;
             font-size: 16px;
@@ -115,6 +170,21 @@
         </div>
         <canvas id="canvas" width="440" height="440"></canvas>
 
+        <!-- On-Screen Controls -->
+        <div id="controls">
+            <div class="dpad-row">
+                <button class="dpad-btn" onclick="setDirection(0, -1)" ontouchstart="setDirection(0, -1); event.preventDefault();">▲</button>
+            </div>
+            <div class="dpad-row">
+                <button class="dpad-btn" onclick="setDirection(-1, 0)" ontouchstart="setDirection(-1, 0); event.preventDefault();">◄</button>
+                <div class="dpad-spacer"></div>
+                <button class="dpad-btn" onclick="setDirection(1, 0)" ontouchstart="setDirection(1, 0); event.preventDefault();">►</button>
+            </div>
+            <div class="dpad-row">
+                <button class="dpad-btn" onclick="setDirection(0, 1)" ontouchstart="setDirection(0, 1); event.preventDefault();">▼</button>
+            </div>
+        </div>
+
         <!-- Question Popup Modal -->
         <div id="modal">
             <h3 id="modal-title">Math Challenge!</h3>
@@ -122,7 +192,6 @@
             <div class="inputs-group">
                 <div><label for="ans-a">a = </label><input type="number" id="ans-a"></div>
                 <div><label for="ans-b">b = </label><input type="number" id="ans-b"></div>
-                <div><label for="ans-c">c = </label><input type="number" id="ans-c"></div>
             </div>
             <button onclick="submitAnswer()">Submit Answer</button>
             <div id="feedback"></div>
@@ -130,38 +199,38 @@
     </div>
 
     <script>
-        // Question Bank generated from the quadratic equations dataset[cite: 1, 2]
+        // Question Bank for Completing the Square: (x - a)² + b[cite: 5]
         const questionBank = [
-            { eq: "-2x² - 15x - 3 = 0", a: -2, b: -15, c: -3 }, //[cite: 1]
-            { eq: "3x² - 8x - 12 = 0", a: 3, b: -8, c: -12 },   //[cite: 1]
-            { eq: "-2x² + 6x + 14 = 0", a: -2, b: 6, c: 14 },   //[cite: 1]
-            { eq: "-3x² + 3x + 7 = 0", a: -3, b: 3, c: 7 },     //[cite: 1]
-            { eq: "-4x² - 15x - 15 = 0", a: -4, b: -15, c: -15 }, //[cite: 1]
-            { eq: "2x² - 8x + 12 = 0", a: 2, b: -8, c: 12 },    //[cite: 1]
-            { eq: "-5x² + 2x - 8 = 0", a: -5, b: 2, c: -8 },    //[cite: 1]
-            { eq: "9x² - 8x + 8 = 0", a: 9, b: -8, c: 8 },      //[cite: 1]
-            { eq: "4x² + 10x - 20 = 0", a: 4, b: 10, c: -20 },  //[cite: 1]
-            { eq: "x² + 7x + 7 = 0", a: 1, b: 7, c: 7 },        //[cite: 1]
-            { eq: "6x² - 7x - 11 = 0", a: 6, b: -7, c: -11 },   //[cite: 1]
-            { eq: "2x² + 15x + 1 = 0", a: 2, b: 15, c: 1 },     //[cite: 1]
-            { eq: "-2x² - 13x + 4 = 0", a: -2, b: -13, c: 4 },  //[cite: 1]
-            { eq: "-2x² - 4x + 2 = 0", a: -2, b: -4, c: 2 },    //[cite: 1]
-            { eq: "4x² + 10x - 18 = 0", a: 4, b: 10, c: -18 },  //[cite: 1]
-            { eq: "10x² + 2x - 13 = 0", a: 10, b: 2, c: -13 },  //[cite: 1]
-            { eq: "8x² - 13x + 15 = 0", a: 8, b: -13, c: 15 },  //[cite: 1]
-            { eq: "5x² + 11x + 20 = 0", a: 5, b: 11, c: 20 },   //[cite: 1]
-            { eq: "7x² + 3x - 8 = 0", a: 7, b: 3, c: -8 },      //[cite: 1]
-            { eq: "-3x² - 14x - 6 = 0", a: -3, b: -14, c: -6 }, //[cite: 1]
-            { eq: "5x² - 13x - 6 = 0", a: 5, b: -13, c: -6 },   //[cite: 1]
-            { eq: "-2x² - 3x - 3 = 0", a: -2, b: -3, c: -3 },   //[cite: 1]
-            { eq: "10x² + 5x + 3 = 0", a: 10, b: 5, c: 3 },     //[cite: 1]
-            { eq: "x² - 4x + 2 = 0", a: 1, b: -4, c: 2 },       //[cite: 1]
-            { eq: "2x² + 6x - 3 = 0", a: 2, b: 6, c: -3 },      //[cite: 2]
-            { eq: "-3x² + 4x + 20 = 0", a: -3, b: 4, c: 20 },   //[cite: 2]
-            { eq: "x² + 2x - 5 = 0", a: 1, b: 2, c: -5 },       //[cite: 2]
-            { eq: "x² - x + 4 = 0", a: 1, b: -1, c: 4 },        //[cite: 2]
-            { eq: "4x² + 14x + 20 = 0", a: 4, b: 14, c: 20 },   //[cite: 2]
-            { eq: "3x² + 6x = 0", a: 3, b: 6, c: 0 }            //[cite: 2]
+            { eq: "x² + 10x + 10", a: -5, b: -15 }, //[cite: 5]
+            { eq: "x² - 8", a: 0, b: -8 },          //[cite: 5]
+            { eq: "x² + 2x - 10", a: -1, b: -11 },  //[cite: 5]
+            { eq: "x² + 10x + 31", a: -5, b: 6 },   //[cite: 5]
+            { eq: "x² + 12x + 39", a: -6, b: 3 },   //[cite: 5]
+            { eq: "x² - 12x + 40", a: 6, b: 4 },    //[cite: 5]
+            { eq: "x² - 6x - 14", a: 3, b: -23 },   //[cite: 5]
+            { eq: "x² - 4x + 12", a: 2, b: 8 },     //[cite: 5]
+            { eq: "x² - 2x - 19", a: 1, b: -20 },   //[cite: 5]
+            { eq: "x² - 14", a: 0, b: -14 },        //[cite: 5]
+            { eq: "x² + 16x + 69", a: -8, b: 5 },   //[cite: 5]
+            { eq: "x² - 16x + 56", a: 8, b: -8 },   //[cite: 5]
+            { eq: "x² - 6x - 6", a: 3, b: -15 },    //[cite: 5]
+            { eq: "x² - 12x + 38", a: 6, b: 2 },    //[cite: 5]
+            { eq: "x² + 4x - 14", a: -2, b: -18 },  //[cite: 5]
+            { eq: "x² + 10x + 15", a: -5, b: -10 }, //[cite: 5]
+            { eq: "x² - 8x + 3", a: 4, b: -13 },    //[cite: 5]
+            { eq: "x² + 6x + 29", a: -3, b: 20 },   //[cite: 5]
+            { eq: "x² - 10x + 19", a: 5, b: -6 },   //[cite: 5]
+            { eq: "x² + 8x - 2", a: -4, b: -18 },   //[cite: 5]
+            { eq: "x² + 4x - 2", a: -2, b: -6 },    //[cite: 5]
+            { eq: "x² + 10x + 22", a: -5, b: -3 },  //[cite: 5]
+            { eq: "x² - 12x + 63", a: 6, b: 27 },   //[cite: 5]
+            { eq: "x² + 2", a: 0, b: 2 },           //[cite: 5]
+            { eq: "x² + 6x - 6", a: -3, b: -15 },   //[cite: 5]
+            { eq: "x² - 6x + 29", a: 3, b: 20 },    //[cite: 5]
+            { eq: "x² + 10x + 20", a: -5, b: -5 },  //[cite: 5]
+            { eq: "x² - 2x + 5", a: 1, b: 4 },      //[cite: 5]
+            { eq: "x² + 12x + 56", a: -6, b: 20 },  //[cite: 5]
+            { eq: "x² - 14x + 49", a: 7, b: 0 }     //[cite: 5]
         ];
 
         const canvas = document.getElementById("canvas");
@@ -198,12 +267,12 @@
         let lives = 3;
         let isPaused = false;
         let currentQuestion = null;
-        let questionType = ""; // "ghost" or "dot"
-        let powerModeEndTime = 0; // Timestamp when power mode expires
+        let questionType = ""; 
+        let powerModeEndTime = 0; 
 
         const REGULAR_DOT_VAL = 10;
-        const GHOST_VAL = REGULAR_DOT_VAL * 10; // 100 points
-        const CAUGHT_PENALTY = REGULAR_DOT_VAL * 2; // 20 points
+        const GHOST_VAL = REGULAR_DOT_VAL * 10;
+        const CAUGHT_PENALTY = REGULAR_DOT_VAL * 2;
 
         // Pac-Man State
         const pacman = {
@@ -243,23 +312,28 @@
                 }
             }
 
-            // Select 8 positions for question dots
             for (let i = 0; i < 8 && walkable.length > 0; i++) {
                 let idx = Math.floor(Math.random() * walkable.length);
                 questionDots.push(walkable.splice(idx, 1)[0]);
             }
 
-            // Remaining positions are regular dots
             dots = walkable;
         }
 
-        // Input Handling
+        // Handle Touch / Button Direction Input
+        function setDirection(dx, dy) {
+            if (isPaused) return;
+            pacman.nextDirX = dx;
+            pacman.nextDirY = dy;
+        }
+
+        // Handle Keyboard Input
         document.addEventListener('keydown', (e) => {
             if (isPaused) return;
-            if (e.key === 'ArrowUp') { pacman.nextDirX = 0; pacman.nextDirY = -1; }
-            if (e.key === 'ArrowDown') { pacman.nextDirX = 0; pacman.nextDirY = 1; }
-            if (e.key === 'ArrowLeft') { pacman.nextDirX = -1; pacman.nextDirY = 0; }
-            if (e.key === 'ArrowRight') { pacman.nextDirX = 1; pacman.nextDirY = 0; }
+            if (e.key === 'ArrowUp') setDirection(0, -1);
+            if (e.key === 'ArrowDown') setDirection(0, 1);
+            if (e.key === 'ArrowLeft') setDirection(-1, 0);
+            if (e.key === 'ArrowRight') setDirection(1, 0);
         });
 
         function triggerQuestion(type, ghostRef = null) {
@@ -280,10 +354,9 @@
                 title.style.color = "#ffcc00";
             }
 
-            qText.innerText = `Find a, b, and c for:\n${currentQuestion.eq}`;
+            qText.innerText = `Rearrange ${currentQuestion.eq}\nin the form (x - a)² + b:`;
             document.getElementById('ans-a').value = '';
             document.getElementById('ans-b').value = '';
-            document.getElementById('ans-c').value = '';
             document.getElementById('feedback').innerText = '';
             modal.style.display = 'block';
         }
@@ -291,36 +364,31 @@
         function submitAnswer() {
             const userA = parseInt(document.getElementById('ans-a').value);
             const userB = parseInt(document.getElementById('ans-b').value);
-            const userC = parseInt(document.getElementById('ans-c').value);
 
-            if (userA === currentQuestion.a && userB === currentQuestion.b && userC === currentQuestion.c) {
+            if (userA === currentQuestion.a && userB === currentQuestion.b) {
                 document.getElementById('modal').style.display = 'none';
                 isPaused = false;
 
                 if (questionType === 'ghost') {
-                    // Correct answer deducts 2x regular dot points (20 points)
                     score = Math.max(0, score - CAUGHT_PENALTY);
                     if (currentActiveGhost) {
                         currentActiveGhost.x = 10;
                         currentActiveGhost.y = 10;
                     }
                 } else if (questionType === 'dot') {
-                    // Answered question dot correctly: bonus points & enable 5-second Power Mode
                     score += 100;
-                    powerModeEndTime = Date.now() + 5000; // 5 seconds from now
+                    powerModeEndTime = Date.now() + 5000;
                 }
                 updateUI();
                 requestAnimationFrame(gameLoop);
             } else {
                 if (questionType === 'ghost') {
-                    // Wrong answer on ghost catch loses 1 life
                     lives--;
                     updateUI();
                     if (lives <= 0) {
                         alert("Game Over! Final Score: " + score);
                         resetGame();
                     } else {
-                        // Reset caught ghost and resume
                         if (currentActiveGhost) {
                             currentActiveGhost.x = 10;
                             currentActiveGhost.y = 10;
@@ -357,7 +425,6 @@
             pacman.nextDirX = 0;
             pacman.nextDirY = 0;
             
-            // Reset Ghosts
             ghosts[0].x = 9;  ghosts[0].y = 10;
             ghosts[1].x = 10; ghosts[1].y = 10;
             ghosts[2].x = 11; ghosts[2].y = 10;
@@ -372,6 +439,9 @@
 
         function update() {
             if (isPaused) return;
+
+            let oldPacmanX = pacman.x;
+            let oldPacmanY = pacman.y;
 
             // Try changing direction
             if (pacman.nextDirX !== 0 || pacman.nextDirY !== 0) {
@@ -416,6 +486,9 @@
 
             // Move Ghosts & Check Collision
             ghosts.forEach(ghost => {
+                let oldGhostX = ghost.x;
+                let oldGhostY = ghost.y;
+
                 let directions = [
                     { x: 0, y: -1 }, { x: 0, y: 1 },
                     { x: -1, y: 0 }, { x: 1, y: 0 }
@@ -437,16 +510,17 @@
                     ghost.y += ghost.dirY;
                 }
 
-                // Check collision with Pacman
-                if (ghost.x === pacman.x && ghost.y === pacman.y) {
+                // Check collisions
+                let sameTile = (ghost.x === pacman.x && ghost.y === pacman.y);
+                let swappedTiles = (ghost.x === oldPacmanX && ghost.y === oldPacmanY && pacman.x === oldGhostX && pacman.y === oldGhostY);
+
+                if (sameTile || swappedTiles) {
                     if (isPowerModeActive()) {
-                        // Pacman eats ghost for 10x regular dot points (100 points)
                         score += GHOST_VAL;
                         ghost.x = 10;
                         ghost.y = 10;
                         updateUI();
                     } else {
-                        // Ghost catches Pacman -> trigger question modal
                         triggerQuestion('ghost', ghost);
                     }
                 }
@@ -489,7 +563,7 @@
             ctx.lineTo(pacman.x * tileSize + 10, pacman.y * tileSize + 10);
             ctx.fill();
 
-            // Draw Ghosts with Flashing logic during last 2 seconds of Power Mode
+            // Draw Ghosts
             const now = Date.now();
             const powerRemaining = powerModeEndTime - now;
             const powerActive = powerRemaining > 0;
@@ -497,7 +571,6 @@
 
             ghosts.forEach(ghost => {
                 if (powerActive) {
-                    // Flash between blue (#0000ff) and white (#ffffff) every 200ms during the last 2 seconds
                     if (isFlashing && Math.floor(now / 200) % 2 === 0) {
                         ctx.fillStyle = '#ffffff';
                     } else {
